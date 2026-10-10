@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus ERP - Portal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ==================== AUTHENTICATION OVERLAY ==================== -->
+  <div id="auth-modal" class="auth-wrapper active">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-brand-icon">🎓</div>
+        <h2 style="font-size: 24px; font-weight: 800; color: #fff;">Campus ERP</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Unified Educational Resource Planning Portal</p>
+      </div>
+
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</div>
+        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Register</div>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+        <div class="form-group" id="group-name" style="display: none;">
+          <label>Full Name</label>
+          <input type="text" id="auth-name" class="form-control" placeholder="Prof. Jane Doe" />
+        </div>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="auth-email" class="form-control" placeholder="admin@campus.edu" required />
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="auth-password" class="form-control" placeholder="••••••••" required />
+        </div>
+
+        <div class="form-group" id="group-role" style="display: none;">
+          <label>Assigned Role</label>
+          <select id="auth-role" class="form-control">
+            <option value="Admin">Admin (Full Control)</option>
+            <option value="Teacher">Teacher (Attendance & Exams)</option>
+            <option value="Student">Student (View Only)</option>
+          </select>
+        </div>
+
+        <div id="auth-error" style="display: none; color: var(--color-danger); font-size: 13px; margin-bottom: 14px; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;"></div>
+
+        <button type="submit" id="auth-submit-btn" class="btn" style="width: 100%; padding: 12px; font-size: 15px;">Sign In to ERP</button>
+      </form>
+
+      <!-- Quick Role Presets for Instant Testing -->
+      <div class="quick-demo-roles">
+        <div class="quick-roles-title">Instant Demo Role Logins</div>
+        <div class="quick-roles-grid">
+          <button class="btn-demo-role" onclick="quickLoginRole('Admin')">
+            <span style="color: #ef4444;">●</span> Admin
+          </button>
+          <button class="btn-demo-role" onclick="quickLoginRole('Teacher')">
+            <span style="color: #3b82f6;">●</span> Teacher
+          </button>
+          <button class="btn-demo-role" onclick="quickLoginRole('Student')">
+            <span style="color: #10b981;">●</span> Student
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN ERP APPLICATION ==================== -->
+  <div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">🎓</div>
+        <div>
+          <div class="brand-title">Campus ERP</div>
+          <div class="brand-subtitle">Academic Suite</div>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item active" data-view="dashboard" onclick="navigateTo('dashboard')">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </li>
+        <li class="nav-item" data-view="students" onclick="navigateTo('students')">
+          <span class="nav-icon">👥</span>
+          <span>Student Directory</span>
+        </li>
+        <li class="nav-item" data-view="attendance" onclick="navigateTo('attendance')">
+          <span class="nav-icon">📅</span>
+          <span>Attendance</span>
+        </li>
+        <li class="nav-item" data-view="fees" onclick="navigateTo('fees')">
+          <span class="nav-icon">💳</span>
+          <span>Fees & Finance</span>
+        </li>
+        <li class="nav-item" data-view="results" onclick="navigateTo('results')">
+          <span class="nav-icon">📝</span>
+          <span>Exams & Results</span>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="api-status-badge" onclick="showApiConfigModal()">
+          <div class="api-status-dot" id="api-status-dot"></div>
+          <span id="api-status-text">API: Connected</span>
+        </div>
+        <div>Backend: Node/Express + Mongo</div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-wrapper">
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 class="page-title" id="page-title">Dashboard Overview</h1>
+        </div>
+
+        <div class="topbar-right">
+          <span class="role-badge admin" id="top-role-badge">ADMIN</span>
+          <div class="user-profile" onclick="handleProfileClick()">
+            <div class="avatar" id="top-avatar">AD</div>
+            <div class="user-info">
+              <span class="user-name" id="top-user-name">Administrator</span>
+              <span class="user-email" id="top-user-email">admin@campus.edu</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="logout()" title="Logout">
+            <span>Logout</span> ⎋
+          </button>
+        </div>
+      </header>
+
+      <!-- BODY CONTENT CONTAINER -->
+      <div class="content-body">
+
+        <!-- ==================== VIEW 1: DASHBOARD ==================== -->
+        <section id="view-dashboard" class="view-section active">
+          <!-- Welcome Banner -->
+          <div class="welcome-banner">
+            <div>
+              <h2 class="banner-title" id="banner-greeting">Welcome back, Administrator 👋</h2>
+              <p class="banner-desc">
+                Real-time campus operational intelligence, student enrollment statistics, financial receipts, and automated grading analytics.
+              </p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="refreshDashboardData()">
+              🔄 Refresh Analytics
+            </button>
+          </div>
+
+          <!-- KPI Cards Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Total Students</span>
+                <span class="kpi-icon">🎓</span>
+              </div>
+              <div class="kpi-value" id="kpi-students">0</div>
+              <div class="kpi-sub">● Enrolled active learners</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Faculty Members</span>
+                <span class="kpi-icon">👨‍🏫</span>
+              </div>
+              <div class="kpi-value" id="kpi-faculty">0</div>
+              <div class="kpi-sub">● Professors & lecturers</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Attendance Average</span>
+                <span class="kpi-icon">📈</span>
+              </div>
+              <div class="kpi-value" id="kpi-attendance">0%</div>
+              <div class="kpi-sub" id="kpi-attendance-sub">● Target: Above 75%</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Fees Collected</span>
+                <span class="kpi-icon">💰</span>
+              </div>
+              <div class="kpi-value" id="kpi-fees-collected">$0</div>
+              <div class="kpi-sub warning" id="kpi-fees-pending">Pending: $0</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Average Exam Score</span>
+                <span class="kpi-icon">🏆</span>
+              </div>
+              <div class="kpi-value" id="kpi-exam-score">0 / 100</div>
+              <div class="kpi-sub" id="kpi-pass-rate">Pass Rate: 100%</div>
+            </div>
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="charts-grid">
+            <!-- Chart 1: Attendance Breakdown -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <h3 class="chart-title">Attendance Ratio Breakdown</h3>
+                  <span class="chart-subtitle">Present, Late, and Absent recorded sessions</span>
+                </div>
+              </div>
+              <div class="progress-bar-group">
+                <div class="prog-item">
+                  <div class="prog-label">
+                    <span>Present (On-Time)</span>
+                    <span id="chart-att-present-val">0%</span>
+                  </div>
+                  <div class="prog-bar-bg">
+                    <div class="prog-bar-fill success" id="chart-att-present-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+                <div class="prog-item">
+                  <div class="prog-label">
+                    <span>Late Arrivals</span>
+                    <span id="chart-att-late-val">0%</span>
+                  </div>
+                  <div class="prog-bar-bg">
+                    <div class="prog-bar-fill warning" id="chart-att-late-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+                <div class="prog-item">
+                  <div class="prog-label">
+                    <span>Absent</span>
+                    <span id="chart-att-absent-val">0%</span>
+                  </div>
+                  <div class="prog-bar-bg">
+                    <div class="prog-bar-fill danger" id="chart-att-absent-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart 2: Fee Collections -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <h3 class="chart-title">Tuition & Fee Collection Progress</h3>
+                  <span class="chart-subtitle">Total received vs outstanding semester balances</span>
+                </div>
+              </div>
+              <div class="progress-bar-group">
+                <div class="prog-item">
+                  <div class="prog-label">
+                    <span>Collected Revenue</span>
+                    <span id="chart-fee-collected-val">$0 (0%)</span>
+                  </div>
+                  <div class="prog-bar-bg">
+                    <div class="prog-bar-fill success" id="chart-fee-collected-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+                <div class="prog-item">
+                  <div class="prog-label">
+                    <span>Outstanding / Pending Fees</span>
+                    <span id="chart-fee-pending-val">$0 (0%)</span>
+                  </div>
+                  <div class="prog-bar-bg">
+                    <div class="prog-bar-fill warning" id="chart-fee-pending-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart 3: Grade Histogram -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <h3 class="chart-title">Semester Grade Distribution</h3>
+                  <span class="chart-subtitle">Evaluated performance curve (A+ through F)</span>
+                </div>
+              </div>
+              <div class="histogram-grid">
+                <div class="histogram-col">
+                  <span class="histogram-val" id="hist-aplus-count">0</span>
+                  <div class="histogram-bar-wrap">
+                    <div class="histogram-bar" id="hist-aplus-bar" style="height: 10%"></div>
+                  </div>
+                  <span class="histogram-label">A+</span>
+                </div>
+                <div class="histogram-col">
+                  <span class="histogram-val" id="hist-a-count">0</span>
+                  <div class="histogram-bar-wrap">
+                    <div class="histogram-bar" id="hist-a-bar" style="height: 10%"></div>
+                  </div>
+                  <span class="histogram-label">A</span>
+                </div>
+                <div class="histogram-col">
+                  <span class="histogram-val" id="hist-b-count">0</span>
+                  <div class="histogram-bar-wrap">
+                    <div class="histogram-bar" id="hist-b-bar" style="height: 10%"></div>
+                  </div>
+                  <span class="histogram-label">B</span>
+                </div>
+                <div class="histogram-col">
+                  <span class="histogram-val" id="hist-c-count">0</span>
+                  <div class="histogram-bar-wrap">
+                    <div class="histogram-bar" id="hist-c-bar" style="height: 10%"></div>
+                  </div>
+                  <span class="histogram-label">C</span>
+                </div>
+                <div class="histogram-col">
+                  <span class="histogram-val" id="hist-d-count">0</span>
+                  <div class="histogram-bar-wrap">
+                    <div class="histogram-bar" id="hist-d-bar" style="height: 10%"></div>
+                  </div>
+                  <span class="histogram-label">D</span>
+                </div>
+                <div class="histogram-col">
+                  <span class="histogram-val" id="hist-f-count">0</span>
+                  <div class="histogram-bar-wrap">
+                    <div class="histogram-bar" id="hist-f-bar" style="height: 10%"></div>
+                  </div>
+                  <span class="histogram-label">F</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart 4: Department Distribution -->
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <h3 class="chart-title">Department Enrollment Share</h3>
+                  <span class="chart-subtitle">Student allocation across academic branches</span>
+                </div>
+              </div>
+              <div class="progress-bar-group" id="dept-bars-container">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 2: STUDENT MANAGEMENT ==================== -->
+        <section id="view-students" class="view-section">
+          <div class="table-container">
+            <div class="table-header-tools">
+              <div class="tool-group">
+                <input type="text" id="student-search" class="search-input" placeholder="Search name, roll no, email..." oninput="handleStudentSearch()" />
+                <select id="student-filter-course" class="select-filter" onchange="handleStudentSearch()">
+                  <option value="All">All Courses</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Mechanical Engineering">Mechanical Engineering</option>
+                  <option value="Electrical Engineering">Electrical Engineering</option>
+                  <option value="Business Administration">Business Administration</option>
+                </select>
+                <select id="student-filter-year" class="select-filter" onchange="handleStudentSearch()">
+                  <option value="0">All Years</option>
+                  <option value="1">Year 1</option>
+                  <option value="2">Year 2</option>
+                  <option value="3">Year 3</option>
+                  <option value="4">Year 4</option>
+                </select>
+              </div>
+
+              <div>
+                <button class="btn" id="btn-add-student" onclick="openAddStudentModal()">
+                  <span>+</span> Enroll New Student
+                </button>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Roll Number</th>
+                    <th>Student Name</th>
+                    <th>Email Address</th>
+                    <th>Course / Branch</th>
+                    <th>Year</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="students-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 3: ATTENDANCE UI ==================== -->
+        <section id="view-attendance" class="view-section">
+          <!-- Quick Attendance Stats Banner -->
+          <div class="kpi-grid" style="margin-bottom: 20px;">
+            <div class="kpi-card">
+              <span class="kpi-title">Average Attendance</span>
+              <div class="kpi-value" id="att-stats-rate">92.5%</div>
+              <span class="kpi-sub">Campus aggregate</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Present Logs</span>
+              <div class="kpi-value" id="att-stats-present" style="color: #10b981;">0</div>
+              <span class="kpi-sub">Attended sessions</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Late Sessions</span>
+              <div class="kpi-value" id="att-stats-late" style="color: #f59e0b;">0</div>
+              <span class="kpi-sub">Delayed entrance</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Absent Records</span>
+              <div class="kpi-value" id="att-stats-absent" style="color: #ef4444;">0</div>
+              <span class="kpi-sub">Unattended</span>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <div class="table-header-tools">
+              <div class="tool-group">
+                <select id="att-filter-subject" class="select-filter" onchange="handleAttendanceFilter()">
+                  <option value="All">All Subjects</option>
+                  <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
+                  <option value="Operating Systems">Operating Systems</option>
+                  <option value="Database Systems">Database Systems</option>
+                  <option value="Computer Networks">Computer Networks</option>
+                  <option value="Thermodynamics">Thermodynamics</option>
+                  <option value="Digital Circuits">Digital Circuits</option>
+                </select>
+                <input type="date" id="att-filter-date" class="select-filter" onchange="handleAttendanceFilter()" />
+                <input type="text" id="att-search" class="search-input" placeholder="Search student name or roll..." oninput="handleAttendanceFilter()" />
+              </div>
+
+              <div>
+                <button class="btn" id="btn-mark-att" onclick="openMarkAttendanceModal()">
+                  <span>✓</span> Mark Attendance
+                </button>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Roll Number</th>
+                    <th>Student Name</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="attendance-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 4: FEES UI ==================== -->
+        <section id="view-fees" class="view-section">
+          <!-- Fees KPI Summary -->
+          <div class="kpi-grid" style="margin-bottom: 20px;">
+            <div class="kpi-card">
+              <span class="kpi-title">Total Collected</span>
+              <div class="kpi-value" id="fee-summary-paid" style="color: #10b981;">$0</div>
+              <span class="kpi-sub">Received across terms</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Pending Invoices</span>
+              <div class="kpi-value" id="fee-summary-pending" style="color: #f59e0b;">$0</div>
+              <span class="kpi-sub">Awaiting clearance</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Total Overdue</span>
+              <div class="kpi-value" id="fee-summary-overdue" style="color: #ef4444;">$0</div>
+              <span class="kpi-sub">Past payment deadline</span>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <div class="table-header-tools">
+              <div class="tool-group">
+                <select id="fee-filter-status" class="select-filter" onchange="handleFeeFilter()">
+                  <option value="All">All Statuses</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Overdue">Overdue</option>
+                </select>
+                <input type="text" id="fee-search" class="search-input" placeholder="Search roll, receipt, student..." oninput="handleFeeFilter()" />
+              </div>
+
+              <div>
+                <button class="btn" id="btn-add-fee" onclick="openAddFeeModal()">
+                  <span>+</span> Add Fee Record
+                </button>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Receipt #</th>
+                    <th>Roll Number</th>
+                    <th>Student Name</th>
+                    <th>Fee Category</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Payment Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="fees-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 5: RESULTS UI ==================== -->
+        <section id="view-results" class="view-section">
+          <!-- Results KPI -->
+          <div class="kpi-grid" style="margin-bottom: 20px;">
+            <div class="kpi-card">
+              <span class="kpi-title">Average Marks</span>
+              <div class="kpi-value" id="results-kpi-avg">0.0 / 100</div>
+              <span class="kpi-sub">Overall semester mean</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Pass Rate</span>
+              <div class="kpi-value" id="results-kpi-pass" style="color: #10b981;">100%</div>
+              <span class="kpi-sub">Marks ≥ 50</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Graded Papers</span>
+              <div class="kpi-value" id="results-kpi-count">0</div>
+              <span class="kpi-sub">Evaluated examinations</span>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <div class="table-header-tools">
+              <div class="tool-group">
+                <select id="results-filter-subject" class="select-filter" onchange="handleResultsFilter()">
+                  <option value="All">All Subjects</option>
+                  <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
+                  <option value="Operating Systems">Operating Systems</option>
+                  <option value="Database Systems">Database Systems</option>
+                  <option value="Computer Networks">Computer Networks</option>
+                  <option value="Thermodynamics">Thermodynamics</option>
+                  <option value="Digital Circuits">Digital Circuits</option>
+                </select>
+                <input type="text" id="results-search" class="search-input" placeholder="Search student, roll number..." oninput="handleResultsFilter()" />
+              </div>
+
+              <div>
+                <button class="btn" id="btn-add-marks" onclick="openAddMarksModal()">
+                  <span>+</span> Record Exam Marks
+                </button>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Roll Number</th>
+                    <th>Student Name</th>
+                    <th>Subject</th>
+                    <th>Marks (100)</th>
+                    <th>Grade</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="results-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal 1: Add / Edit Student -->
+  <div id="modal-student" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-student-title">Enroll New Student</h3>
+        <button class="modal-close" onclick="closeModal('modal-student')">✕</button>
+      </div>
+      <form onsubmit="handleSaveStudent(event)">
+        <input type="hidden" id="student-edit-id" />
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="student-name-input" class="form-control" placeholder="e.g. Alex Morgan" required />
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="student-email-input" class="form-control" placeholder="alex.morgan@campus.edu" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Course / Program</label>
+            <select id="student-course-input" class="form-control">
+              <option value="Computer Science">Computer Science</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Electrical Engineering">Electrical Engineering</option>
+              <option value="Business Administration">Business Administration</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Academic Year</label>
+            <select id="student-year-input" class="form-control">
+              <option value="1">Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3">Year 3</option>
+              <option value="4">Year 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Roll / Matriculation Number</label>
+          <input type="text" id="student-roll-input" class="form-control" placeholder="e.g. CS2024-001" required />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-student')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Mark Attendance -->
+  <div id="modal-attendance" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Record Attendance</h3>
+        <button class="modal-close" onclick="closeModal('modal-attendance')">✕</button>
+      </div>
+      <form onsubmit="handleSaveAttendance(event)">
+        <div class="form-group">
+          <label>Select Student</label>
+          <select id="att-student-select" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <select id="att-subject-input" class="form-control">
+            <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
+            <option value="Operating Systems">Operating Systems</option>
+            <option value="Database Systems">Database Systems</option>
+            <option value="Computer Networks">Computer Networks</option>
+            <option value="Thermodynamics">Thermodynamics</option>
+            <option value="Digital Circuits">Digital Circuits</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="att-date-input" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Attendance Status</label>
+            <select id="att-status-input" class="form-control">
+              <option value="Present">Present (Attended)</option>
+              <option value="Late">Late (Delayed)</option>
+              <option value="Absent">Absent (Missed)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-attendance')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Add Fee Record -->
+  <div id="modal-fee" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Fee Invoice</h3>
+        <button class="modal-close" onclick="closeModal('modal-fee')">✕</button>
+      </div>
+      <form onsubmit="handleSaveFee(event)">
+        <div class="form-group">
+          <label>Select Student</label>
+          <select id="fee-student-select" class="form-control" required></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fee Category</label>
+            <select id="fee-type-input" class="form-control">
+              <option value="Tuition Fee">Tuition Fee</option>
+              <option value="Lab & Library Fee">Lab & Library Fee</option>
+              <option value="Examination Fee">Examination Fee</option>
+              <option value="Hostel & Amenities">Hostel & Amenities</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount ($)</label>
+            <input type="number" id="fee-amount-input" class="form-control" min="1" step="0.01" value="2500" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Payment Status</label>
+            <select id="fee-status-input" class="form-control">
+              <option value="Paid">Paid</option>
+              <option value="Pending">Pending</option>
+              <option value="Overdue">Overdue</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Payment / Due Date</label>
+            <input type="date" id="fee-date-input" class="form-control" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-fee')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Fee Status Quick Update -->
+  <div id="modal-fee-status" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Update Payment Status</h3>
+        <button class="modal-close" onclick="closeModal('modal-fee-status')">✕</button>
+      </div>
+      <form onsubmit="handleUpdateFeeStatus(event)">
+        <input type="hidden" id="fee-update-id" />
+        <p id="fee-update-info" style="font-size: 14px; margin-bottom: 16px; color: var(--text-muted);"></p>
+        <div class="form-group">
+          <label>New Status</label>
+          <select id="fee-update-status-select" class="form-control">
+            <option value="Paid">Paid (Cleared)</option>
+            <option value="Pending">Pending (Outstanding)</option>
+            <option value="Overdue">Overdue (Past Date)</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-fee-status')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Status</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Printable Receipt -->
+  <div id="modal-receipt" class="modal-overlay">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Official Fee Receipt</h3>
+        <button class="modal-close" onclick="closeModal('modal-receipt')">✕</button>
+      </div>
+      <div class="receipt-paper" id="receipt-content">
+        <!-- Dynamically injected -->
+      </div>
+      <div class="modal-footer" style="background: transparent;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-receipt')">Close</button>
+        <button type="button" class="btn btn-success" onclick="printReceipt()">🖨 Print / Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Record Marks -->
+  <div id="modal-marks" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Record Examination Marks</h3>
+        <button class="modal-close" onclick="closeModal('modal-marks')">✕</button>
+      </div>
+      <form onsubmit="handleSaveMarks(event)">
+        <div class="form-group">
+          <label>Select Student</label>
+          <select id="marks-student-select" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <select id="marks-subject-input" class="form-control">
+            <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
+            <option value="Operating Systems">Operating Systems</option>
+            <option value="Database Systems">Database Systems</option>
+            <option value="Computer Networks">Computer Networks</option>
+            <option value="Thermodynamics">Thermodynamics</option>
+            <option value="Digital Circuits">Digital Circuits</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Marks Scored (0 - 100)</label>
+            <input type="number" id="marks-score-input" class="form-control" min="0" max="100" step="0.5" value="85" required oninput="previewGrade()" />
+          </div>
+          <div class="form-group">
+            <label>Calculated Grade</label>
+            <input type="text" id="marks-grade-preview" class="form-control" value="A" readonly style="background: rgba(255,255,255,0.05); font-weight: 700;" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-marks')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Marks</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 7: Student Report Card -->
+  <div id="modal-report-card" class="modal-overlay">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Student Academic Report Card</h3>
+        <button class="modal-close" onclick="closeModal('modal-report-card')">✕</button>
+      </div>
+      <div id="report-card-content">
+        <!-- Dynamically populated -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-report-card')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 8: Backend API Configuration -->
+  <div id="modal-api-config" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Backend API Endpoint</h3>
+        <button class="modal-close" onclick="closeModal('modal-api-config')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>API Base URL</label>
+        <input type="text" id="api-base-url-input" class="form-control" value="http://localhost:5000/api" />
+        <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 6px;">
+          Connects via standard Fetch API to the Node.js/Express ERP backend. If the backend is offline, the client automatically utilizes fallback demo storage seamlessly.
+        </span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-api-config')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveApiConfig()">Save & Reconnect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- JavaScript Application Entry Point -->
+  <script src="app.js"></script>
+</body>
+</html>

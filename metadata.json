@@ -1,0 +1,6 @@
+{
+  "name": "Campus ERP",
+  "description": "Full-stack Educational ERP system with Node.js/Express API, MongoDB schema, JWT role-based authentication, and Student Management",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "campus-erp-client",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Campus ERP Web Client & API Interface",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.6.8"
+  },
+  "devDependencies": {
+    "vite": "^5.2.8"
+  }
+}

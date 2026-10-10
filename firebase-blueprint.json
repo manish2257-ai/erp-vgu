@@ -1,0 +1,119 @@
+{
+  "entities": {
+    "users": {
+      "title": "UserProfile",
+      "description": "User account profile and role information",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Auth UID" },
+        "name": { "type": "string", "description": "Full name" },
+        "email": { "type": "string", "description": "Email address" },
+        "role": { "type": "string", "enum": ["ADMIN", "TEACHER", "STUDENT"], "description": "User access role" },
+        "department": { "type": "string", "description": "Department or faculty division" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "email", "role"]
+    },
+    "students": {
+      "title": "Student",
+      "description": "Student academic and enrollment record",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Student full name" },
+        "email": { "type": "string", "description": "Student email" },
+        "course": { "type": "string", "description": "Degree program or course" },
+        "year": { "type": "integer", "description": "Academic year level" },
+        "rollNumber": { "type": "string", "description": "Unique roll number" },
+        "createdBy": { "type": "string", "description": "UID of creator" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "course", "year", "rollNumber"]
+    },
+    "faculty": {
+      "title": "FacultyMember",
+      "description": "Faculty staff details, department, and assigned subjects",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Faculty name" },
+        "email": { "type": "string", "description": "Faculty official email" },
+        "department": { "type": "string", "description": "Academic department" },
+        "subjects": { "type": "string", "description": "Comma-separated assigned subjects" },
+        "createdBy": { "type": "string", "description": "UID of creator" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "department", "subjects"]
+    },
+    "attendance": {
+      "title": "AttendanceRecord",
+      "description": "Daily student subject attendance log",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "Student identifier or roll number" },
+        "date": { "type": "string", "description": "Date YYYY-MM-DD" },
+        "subject": { "type": "string", "description": "Class or subject name" },
+        "status": { "type": "string", "enum": ["PRESENT", "ABSENT", "LATE"], "description": "Attendance status" },
+        "markedBy": { "type": "string", "description": "Teacher/Admin UID" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "date", "subject", "status"]
+    },
+    "fees": {
+      "title": "FeeRecord",
+      "description": "Tuition and institutional fee ledger records",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "Student identifier" },
+        "amount": { "type": "number", "description": "Fee transaction amount" },
+        "status": { "type": "string", "enum": ["PAID", "PENDING", "OVERDUE"], "description": "Payment status" },
+        "paymentDate": { "type": "string", "description": "Date YYYY-MM-DD" },
+        "receiptNo": { "type": "string", "description": "Official receipt number" },
+        "createdBy": { "type": "string", "description": "Admin UID" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "amount", "status", "paymentDate"]
+    },
+    "exams": {
+      "title": "ExamResult",
+      "description": "Grading and examination score records",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "Student identifier" },
+        "subject": { "type": "string", "description": "Subject evaluated" },
+        "marks": { "type": "integer", "description": "Score 0-100" },
+        "grade": { "type": "string", "description": "Letter grade" },
+        "evaluatedBy": { "type": "string", "description": "Teacher/Admin UID" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "subject", "marks", "grade"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/users" },
+      "description": "User profiles containing roles and department information"
+    },
+    "/students/{studentId}": {
+      "schema": { "$ref": "#/entities/students" },
+      "description": "Global student database accessible across campus"
+    },
+    "/faculty/{facultyId}": {
+      "schema": { "$ref": "#/entities/faculty" },
+      "description": "Faculty staff roster and assigned course subjects"
+    },
+    "/attendance/{recordId}": {
+      "schema": { "$ref": "#/entities/attendance" },
+      "description": "Classroom attendance logs"
+    },
+    "/fees/{feeId}": {
+      "schema": { "$ref": "#/entities/fees" },
+      "description": "College fee ledger and payment records"
+    },
+    "/exams/{examId}": {
+      "schema": { "$ref": "#/entities/exams" },
+      "description": "Academic examination marks and grade allocations"
+    }
+  }
+}
